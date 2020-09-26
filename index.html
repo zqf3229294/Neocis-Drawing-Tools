@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>HTML5 Canvas</title>
+        <style>
+            #myCanvas{
+                border: 1px solid black;
+                /* height:100%;
+                width: 100%; */
+            }
+        </style>
+    </head>
+    <body>
+        <script>
+            function draw(){
+                const mycanvas=document.getElementById("myCanvas")
+                var ctx = mycanvas.getContext('2d');
+                // ctx.arc(200,200,100,0,1,false);
+                // ctx.stroke();
+                ctx.translate(mycanvas.width/2, mycanvas.height/2);
+                ctx.lineWidth = 5;
+                ctx.fillStyle = 'rgb(255, 0, 0)';
+                ctx.fillRect(0, 0, 100, 150);
+                // ctx.fillStyle = 'rgba(0, 255, 0,0.5)';
+                // ctx.fillRect(75, 75, 100, 100);
+                // ctx.strokeStyle = 'rgb(255, 0, 0)';
+                // ctx.strokeRect(25, 25, 175, 200);
+
+                
+            }
+            window.onload = draw;
+            console.log('print successfully')
+        </script>
+        <canvas id="myCanvas" width="500" height="500">
+            <p>Add suitable fallback here.</p>
+        </canvas>
+    </body>
+</html>
