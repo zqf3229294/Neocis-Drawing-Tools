@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -36,4 +36,227 @@
             <p>Add suitable fallback here.</p>
         </canvas>
     </body>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Canvas</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #ccc;
+      }
+
+      .toolbar {
+        width: 150px;
+        height: 25px;
+        background: #ccc;
+        padding: 5px;
+      }
+
+      input[type="color"], button {
+        width: 90%;
+        margin: 0 auto;
+        display: block;
+      }
+
+      input[type="range"] {
+        width: 70%;
+      }
+
+       span {
+         position: relative;
+         bottom: 5px;
+       }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <button>Reset</button>
+    </div>
+
+    <canvas class="myCanvas">
+      <p>Add suitable fallback here.</p>
+    </canvas>
+
+    <script>
+
+      const canvas = document.querySelector('.myCanvas');
+      const width = canvas.width = "400";
+      const height = canvas.height = "400";
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = 'rgb(255,255,255)';
+      ctx.fillRect(0,0,width,height);
+
+    //   const colorPicker = document.querySelector('input[type="color"]');
+    //   const sizePicker = document.querySelector('input[type="range"]');
+    //   const output = document.querySelector('.output');
+      const resetBtn = document.querySelector('button');
+
+      // covert degrees to radians
+      function degToRad(degrees) {
+        return degrees * Math.PI / 180;
+      };
+
+      // update sizepicker output value
+
+    //   sizePicker.oninput = function() {
+    //     output.textContent = sizePicker.value;
+    //   }
+
+      // store mouse pointer coordinates, and whether the button is pressed
+      let curX;
+      let curY;
+      let pressed = false;
+      let released = false;
+      let cenX;
+      let cenY;
+      let Radius;
+      let Radius1;
+      let Radius2;
+      let rects=[];
+      let moveOffset=20;
+      let grid_num = 20;
+
+      function rectar(x,y,width,height){
+          this.x=x;
+          this.y=y;
+          this.width=width;
+          this.height=height;
+          this.isSelected=false;
+      }
+
+      // update mouse pointer coordinates
+      document.onmousemove = function(e) {
+        curX = e.pageX - canvas.offsetLeft;
+        curY = e.pageY - canvas.offsetTop;
+      }
+
+      canvas.onmousedown = function(e) {
+        console.log('onmousedown');
+        pressed = true;
+        cenX = e.pageX - canvas.offsetLeft;
+        cenY = e.pageY - canvas.offsetTop;
+      };
+
+      canvas.onmouseup = function() {
+        pressed = false;
+        released = true;
+      }
+
+      function reset(){
+        console.log('reset');
+        ctx.fillStyle = 'rgb(255,255,255)';
+        ctx.fillRect(0,0,width,height);
+      }
+
+      resetBtn.onclick = reset()
+      
+      function init_grid(){
+        let n=grid_num;
+        for(let i = 0; i < n; i++) {
+            for(let j=0; j < n; j++){
+                let rect=new rectar(i*moveOffset+10, j*moveOffset+10, 5, 5)
+                rects.push(rect);
+            }
+        }
+      }
+
+      function draw_grid(){
+        rects.forEach((rect,index)=>{
+            ctx.beginPath();
+            if(rect.isSelected){
+                ctx.fillStyle = 'rgb(255, 0, 0)';
+            }else{
+                ctx.fillStyle = 'rgb(128, 128, 128)';
+            }
+            ctx.fillRect(rect.x-2.5, rect.y-2.5, rect.width, rect.height);
+        });
+      }
+      
+      function draw_blue_circle(){
+        console.log('draw_circle');
+        ctx.strokeStyle = 'rgb(0, 0, 255)';
+        Radius=Math.sqrt((curX-cenX)**2+(curY-cenY)**2);
+        ctx.beginPath();
+        ctx.arc(cenX, cenY, Radius, degToRad(0), degToRad(360), false);
+        ctx.stroke();
+      }
+
+      function draw_center(){
+        ctx.fillStyle = 'rgb(255, 0, 0)';
+        ctx.beginPath();
+        ctx.arc(cenX, cenY, 2, degToRad(0), degToRad(360), false);
+        ctx.fill();
+      }
+
+      function highlight_point(){
+          rects.forEach((item,index)=>{
+              let distance=Math.abs(Math.sqrt((item.x-cenX)**2+(item.y-cenY)**2)-Radius);
+              if(distance<moveOffset/2){
+                  item.isSelected=true;
+              } ;
+          })
+          draw_grid();
+      }
+
+      function draw_red_circle(){
+        ctx.strokeStyle = 'rgb(255, 0, 0)';
+        let Radius1=Number.MAX_VALUE;
+        let Radius2=0;
+        rects.forEach((item,index)=>{
+            if(item.isSelected){
+                let r=Math.sqrt((item.x-cenX)**2+(item.y-cenY)**2);
+                if(r<Radius1){
+                    Radius1=r;
+                };
+                if(r>Radius2){
+                    Radius2=r;
+                }
+            };
+        });
+        ctx.beginPath();
+        ctx.arc(cenX, cenY, Radius1, degToRad(0), degToRad(360), false);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cenX, cenY, Radius2, degToRad(0), degToRad(360), false);
+        ctx.stroke();
+      }
+
+      function draw() {
+        if(pressed) {
+            draw_center();
+            pressed = false;
+        }
+        if(released) {
+            draw_blue_circle();
+            highlight_point();
+            draw_red_circle();
+            released = false;
+        }
+        requestAnimationFrame(draw);
+      }
+
+    //   ctx.clearRect(0, 0, width, height);
+    //   reset();
+      init_grid();
+      draw_grid();
+      draw();
+      
+    </script>
+  </body>
 </html>
