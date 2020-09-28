@@ -17,25 +17,16 @@
         padding: 5px;
       }
 
-      input[type="color"], button {
+      button {
         width: 90%;
         margin: 0 auto;
         display: block;
       }
-
-      input[type="range"] {
-        width: 70%;
-      }
-
-       span {
-         position: relative;
-         bottom: 5px;
-       }
     </style>
   </head>
   <body>
     <div class="toolbar">
-      <button>Reset</button>
+      <button>Generate</button>
     </div>
 
     <canvas class="myCanvas">
@@ -52,42 +43,36 @@
       ctx.fillStyle = 'rgb(255,255,255)';
       ctx.fillRect(0,0,width,height);
 
-    //   const colorPicker = document.querySelector('input[type="color"]');
-    //   const sizePicker = document.querySelector('input[type="range"]');
-    //   const output = document.querySelector('.output');
-      const resetBtn = document.querySelector('button');
+      const generateBtn = document.querySelector('button');
 
       // covert degrees to radians
       function degToRad(degrees) {
         return degrees * Math.PI / 180;
       };
 
-      // update sizepicker output value
-
-    //   sizePicker.oninput = function() {
-    //     output.textContent = sizePicker.value;
-    //   }
-
       // store mouse pointer coordinates, and whether the button is pressed
-      let curX;
-      let curY;
       let pressed = false;
       let released = false;
       let cenX;
       let cenY;
       let Radius;
+      let rects=[];
+      let moveOffset=20;
+      let grid_num = 20;
 
-      // update mouse pointer coordinates
-      document.onmousemove = function(e) {
-        curX = (window.Event) ? e.pageX : e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
-        curY = (window.Event) ? e.pageY : e.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+      function rectar(x,y,width,height){
+          this.x=x;
+          this.y=y;
+          this.width=width;
+          this.height=height;
+          this.isSelected=false;
       }
 
       canvas.onmousedown = function(e) {
         console.log('onmousedown');
         pressed = true;
-        cenX = (window.Event) ? e.pageX : e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
-        cenY = (window.Event) ? e.pageY : e.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+        cenX = e.pageX - canvas.offsetLeft;
+        cenY = e.pageY - canvas.offsetTop;
       };
 
       canvas.onmouseup = function() {
@@ -95,49 +80,150 @@
         released = true;
       }
 
-      function reset(){
-        console.log('reset');
-        ctx.fillStyle = 'rgb(255,255,255)';
-        ctx.fillRect(0,0,width,height);
-      }
-
-      resetBtn.onclick = reset()
-
-      function draw_grid(){
-        console.log('draw_grid');
-        var n = 20;
-        var moveOffset = 20;
-        ctx.fillStyle = 'rgb(128, 128, 128)';
-
-        for(var i = 0; i < n; i++) {
-            for(var j=0; j < n; j++){
-                ctx.fillRect(i*moveOffset+10, j*moveOffset+10, 5, 5);
-            }
+      function init_grid(){
+        let n=grid_num;
+        for(let i = 0; i < n; i++) {
+          for(let j=0; j < n; j++){
+            let rect=new rectar(i*moveOffset+10, j*moveOffset+10, 5, 5)
+            rects.push(rect);
+            ctx.beginPath();
+            ctx.fillStyle = 'rgb(128, 128, 128)';
+            ctx.fillRect(rect.x-2.5, rect.y-2.5, rect.width, rect.height);
+          }
         }
       }
+
+      function update_grid(){
+        // ctx.clearRect(0,0,width,height);
+        rects.forEach((rect,index)=>{
+          if(rect.isSelected){
+            ctx.beginPath();
+            ctx.fillStyle = 'rgb(255, 0, 0)';
+            ctx.fillRect(rect.x-2.5, rect.y-2.5, rect.width, rect.height);
+          }else{
+            ctx.beginPath();
+            ctx.fillStyle = 'rgb(128, 128, 128)';
+            ctx.fillRect(rect.x-2.5, rect.y-2.5, rect.width, rect.height);
+          }
+        });
+      }
+
+      function circleLeastFit(points) {
+        let center_x=0;
+        let center_y=0;
+        let radius=0;
+        if(points.length<3){return false;};
+        let sum_x=0;
+        let sum_y=0;
+        let sum_x2=0;
+        let sum_y2=0;
+        let sum_x3=0;
+        let sum_y3=0;
+        let sum_xy=0;
+        let sum_x1y2=0;
+        let sum_x2y1=0;
+        let N=points.length;
+        for(let i=0;i<N;i++){
+          let x=points[i].x;
+          let y=points[i].y;
+          let x2=x*x;
+          let y2=y*y;
+          sum_x+=x;
+          sum_y+=y;
+          sum_x2+=x2;
+          sum_y2+=y2;
+          sum_x3+=x2*x;
+          sum_y3+=y2*y;
+          sum_xy+=x*y;
+          sum_x1y2+=x*y2;
+          sum_x2y1+=x2*y;
+        };
+        let C,D,E,G,H;
+        let a,b,c;
+
+        C = N * sum_x2 - sum_x*sum_y;
+        D = N * sum_xy - sum_x * sum_y;
+        E = N * sum_x3 + N * sum_x1y2 - (sum_x2 + sum_y2) * sum_x;
+        G = N * sum_y2 - sum_y * sum_y;
+        H = N * sum_x2y1 + N * sum_y3 - (sum_x2 + sum_y2) * sum_y;
+        a = (H * D - E * G) / (C * G - D * D);
+        b = (H * C - E * D) / (D * D - G * C);
+        c = -(a * sum_x + b * sum_y + sum_x2 + sum_y2) / N;
+
+        center_x = a / (-2);
+        center_y = b / (-2);
+        radius = Math.sqrt(a * a + b * b - 4 * c) / 2;
+        return {center_x,center_y,radius};
+
+      }
+
+      // function cal_ellipse(){
+      //   pass;
+      // }
       
-      function draw_circle(){
+      // function draw_blue_ellipse(){
+      //   let x,y,rX,rY,theta=cal_ellipse();
+      //   let x=200;
+      //   let y=200;
+      //   let rX=80;
+      //   let rY=50;
+      //   let theta=Math.PI/4;
+      //   console.log('draw_ellipse');
+      //   ctx.strokeStyle = 'rgb(0, 0, 255)';
+      //   ctx.beginPath();
+      //   ctx.ellipse(x, y, rX, rY, theta, 0, 2 * Math.PI, false);
+      //   ctx.stroke();
+      // }
+
+      function draw_blue_circle(){
+        let points=[];
+        rects.forEach((rect,index)=>{
+          if(rect.isSelected){
+            points.push(rect);
+          }
+        })
+        let {center_x,center_y,radius}=circleLeastFit(points);
         console.log('draw_circle');
-        ctx.fillStyle = 'rgb(255, 0, 0)';
-        Radius=Math.sqrt((curX-cenX)**2+(curY-cenY)**2)
-        ctx.arc(cenX, cenY, Radius, degToRad(0), degToRad(360), false);
+        console.log(center_x);
+        console.log(center_y);
+        console.log(radius);
+        ctx.strokeStyle = 'rgb(0, 0, 255)';
+        ctx.beginPath();
+        ctx.arc(center_x, center_y, radius, degToRad(0), degToRad(360), false);
         ctx.stroke();
       }
 
-      
+      function pick_point(){
+          rects.forEach((item,index)=>{
+              let distance=Math.abs(Math.sqrt((item.x-cenX)**2+(item.y-cenY)**2));
+              if(distance<5){
+                if(item.isSelected){
+                  item.isSelected=false;
+                }else{
+                  item.isSelected=true;
+                }
+              } ;
+          })
+          update_grid();
+      }
+
+      function generate(){
+        console.log('generate');
+        // draw_blue_ellipse();
+        draw_blue_circle();
+      }
+
+      generateBtn.onclick = generate;
 
       function draw() {
         if(released) {
-            draw_circle();
+            pick_point();
             released = false;
-            console.log('draw');
         }
         requestAnimationFrame(draw);
       }
 
-      ctx.clearRect(0, 0, width, height);
-      reset();
-      draw_grid();
+      init_grid();
       draw();
       
     </script>

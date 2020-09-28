@@ -1,53 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>HTML5 Canvas</title>
-        <style>
-            #myCanvas{
-                border: 1px solid black;
-                /* height:100%;
-                width: 100%; */
-            }
-        </style>
-    </head>
-    <body>
-        <script>
-            function draw(){
-                const mycanvas=document.getElementById("myCanvas")
-                var ctx = mycanvas.getContext('2d');
-                // ctx.arc(200,200,100,0,1,false);
-                // ctx.stroke();
-                ctx.translate(mycanvas.width/2, mycanvas.height/2);
-                ctx.lineWidth = 5;
-                ctx.fillStyle = 'rgb(255, 0, 0)';
-                ctx.fillRect(0, 0, 100, 150);
-                // ctx.fillStyle = 'rgba(0, 255, 0,0.5)';
-                // ctx.fillRect(75, 75, 100, 100);
-                // ctx.strokeStyle = 'rgb(255, 0, 0)';
-                // ctx.strokeRect(25, 25, 175, 200);
-
-                
-            }
-            window.onload = draw;
-            console.log('print successfully')
-        </script>
-        <canvas id="myCanvas" width="500" height="500">
-            <p>Add suitable fallback here.</p>
-        </canvas>
-    </body>
-</html> -->
-
-
-
-
-
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -60,34 +10,9 @@
         background: #ccc;
       }
 
-      .toolbar {
-        width: 150px;
-        height: 25px;
-        background: #ccc;
-        padding: 5px;
-      }
-
-      input[type="color"], button {
-        width: 90%;
-        margin: 0 auto;
-        display: block;
-      }
-
-      input[type="range"] {
-        width: 70%;
-      }
-
-       span {
-         position: relative;
-         bottom: 5px;
-       }
     </style>
   </head>
   <body>
-    <div class="toolbar">
-      <button>Reset</button>
-    </div>
-
     <canvas class="myCanvas">
       <p>Add suitable fallback here.</p>
     </canvas>
@@ -102,21 +27,12 @@
       ctx.fillStyle = 'rgb(255,255,255)';
       ctx.fillRect(0,0,width,height);
 
-    //   const colorPicker = document.querySelector('input[type="color"]');
-    //   const sizePicker = document.querySelector('input[type="range"]');
-    //   const output = document.querySelector('.output');
       const resetBtn = document.querySelector('button');
 
       // covert degrees to radians
       function degToRad(degrees) {
         return degrees * Math.PI / 180;
       };
-
-      // update sizepicker output value
-
-    //   sizePicker.oninput = function() {
-    //     output.textContent = sizePicker.value;
-    //   }
 
       // store mouse pointer coordinates, and whether the button is pressed
       let curX;
@@ -157,14 +73,6 @@
         pressed = false;
         released = true;
       }
-
-      function reset(){
-        console.log('reset');
-        ctx.fillStyle = 'rgb(255,255,255)';
-        ctx.fillRect(0,0,width,height);
-      }
-
-      resetBtn.onclick = reset()
       
       function init_grid(){
         let n=grid_num;
@@ -251,8 +159,6 @@
         requestAnimationFrame(draw);
       }
 
-    //   ctx.clearRect(0, 0, width, height);
-    //   reset();
       init_grid();
       draw_grid();
       draw();
