@@ -50,16 +50,17 @@
         return degrees * Math.PI / 180;
       };
 
-      // store mouse pointer coordinates, and whether the button is pressed
+      //initial parameters
       let pressed = false;
       let released = false;
-      let cenX;
-      let cenY;
+      let curX;
+      let curY;
       let Radius;
       let rects=[];
       let moveOffset=20;
       let grid_num = 20;
 
+      //define rectangle object
       function rectar(x,y,width,height){
           this.x=x;
           this.y=y;
@@ -68,18 +69,21 @@
           this.isSelected=false;
       }
 
+      //record current mouse click coordinates
       canvas.onmousedown = function(e) {
         console.log('onmousedown');
         pressed = true;
-        cenX = e.pageX - canvas.offsetLeft;
-        cenY = e.pageY - canvas.offsetTop;
+        curX = e.pageX - canvas.offsetLeft;
+        curY = e.pageY - canvas.offsetTop;
       };
 
+      //set 'release' to True when release the mouseclick
       canvas.onmouseup = function() {
         pressed = false;
         released = true;
       }
 
+      //initial the 'rects' array, set grid rectangle width to 5, initial offset to 10, and draw the grid.
       function init_grid(){
         let n=grid_num;
         for(let i = 0; i < n; i++) {
@@ -93,6 +97,7 @@
         }
       }
 
+      //refresh the grid display based on the 'isSelected' status.
       function update_grid(){
         // ctx.clearRect(0,0,width,height);
         rects.forEach((rect,index)=>{
@@ -108,6 +113,7 @@
         });
       }
 
+      //fit the circle parameter based on least squares method.
       function circleLeastFit(points) {
         let center_x=0;
         let center_y=0;
@@ -141,7 +147,7 @@
         let C,D,E,G,H;
         let a,b,c;
 
-        C = N * sum_x2 - sum_x*sum_y;
+        C = N * sum_x2 - sum_x*sum_x;
         D = N * sum_xy - sum_x * sum_y;
         E = N * sum_x3 + N * sum_x1y2 - (sum_x2 + sum_y2) * sum_x;
         G = N * sum_y2 - sum_y * sum_y;
@@ -157,45 +163,10 @@
 
       }
 
-      // function cal_ellipse(){
-      //   pass;
-      // }
-      
-      // function draw_blue_ellipse(){
-      //   let x,y,rX,rY,theta=cal_ellipse();
-      //   let x=200;
-      //   let y=200;
-      //   let rX=80;
-      //   let rY=50;
-      //   let theta=Math.PI/4;
-      //   console.log('draw_ellipse');
-      //   ctx.strokeStyle = 'rgb(0, 0, 255)';
-      //   ctx.beginPath();
-      //   ctx.ellipse(x, y, rX, rY, theta, 0, 2 * Math.PI, false);
-      //   ctx.stroke();
-      // }
-
-      function draw_blue_circle(){
-        let points=[];
-        rects.forEach((rect,index)=>{
-          if(rect.isSelected){
-            points.push(rect);
-          }
-        })
-        let {center_x,center_y,radius}=circleLeastFit(points);
-        console.log('draw_circle');
-        console.log(center_x);
-        console.log(center_y);
-        console.log(radius);
-        ctx.strokeStyle = 'rgb(0, 0, 255)';
-        ctx.beginPath();
-        ctx.arc(center_x, center_y, radius, degToRad(0), degToRad(360), false);
-        ctx.stroke();
-      }
-
+      //when click the grid rectangle, change its status of 'isSelected', and update grid display.
       function pick_point(){
           rects.forEach((item,index)=>{
-              let distance=Math.abs(Math.sqrt((item.x-cenX)**2+(item.y-cenY)**2));
+              let distance=Math.abs(Math.sqrt((item.x-curX)**2+(item.y-curY)**2));
               if(distance<5){
                 if(item.isSelected){
                   item.isSelected=false;
@@ -207,14 +178,32 @@
           update_grid();
       }
 
+      //draw the generated blue circle based on the fitting parameter
+      function draw_blue_circle(){
+        let points=[];
+        rects.forEach((rect,index)=>{
+          if(rect.isSelected){
+            points.push(rect);
+          }
+        })
+        let {center_x,center_y,radius}=circleLeastFit(points);
+        console.log('draw_circle');
+        ctx.strokeStyle = 'rgb(0, 0, 255)';
+        ctx.beginPath();
+        ctx.arc(center_x, center_y, radius, degToRad(0), degToRad(360), false);
+        ctx.stroke();
+      }
+
+      //generate the fitting circle
       function generate(){
         console.log('generate');
-        // draw_blue_ellipse();
         draw_blue_circle();
       }
 
+      //define the 'generate' button
       generateBtn.onclick = generate;
 
+      //repeatly track mouseclick on canvas to update the grid's 'isSelected' status.
       function draw() {
         if(released) {
             pick_point();

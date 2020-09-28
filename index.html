@@ -34,7 +34,7 @@
         return degrees * Math.PI / 180;
       };
 
-      // store mouse pointer coordinates, and whether the button is pressed
+      //initial parameters
       let curX;
       let curY;
       let pressed = false;
@@ -48,6 +48,7 @@
       let moveOffset=20;
       let grid_num = 20;
 
+      //define rectangle object
       function rectar(x,y,width,height){
           this.x=x;
           this.y=y;
@@ -56,12 +57,13 @@
           this.isSelected=false;
       }
 
-      // update mouse pointer coordinates
+      // track mouse pointer coordinates when on canvas
       document.onmousemove = function(e) {
         curX = e.pageX - canvas.offsetLeft;
         curY = e.pageY - canvas.offsetTop;
       }
 
+      //record mouse click coordinates as the circle center
       canvas.onmousedown = function(e) {
         console.log('onmousedown');
         pressed = true;
@@ -69,11 +71,13 @@
         cenY = e.pageY - canvas.offsetTop;
       };
 
+      //set 'release' to True when release the mouseclick
       canvas.onmouseup = function() {
         pressed = false;
         released = true;
       }
       
+      //initial the 'rects' array, set grid rectangle width to 5, and initial offset to 10.
       function init_grid(){
         let n=grid_num;
         for(let i = 0; i < n; i++) {
@@ -84,6 +88,7 @@
         }
       }
 
+      //draw the grid rectangle. If isSelectd, draw with red color, else, with grey color.
       function draw_grid(){
         rects.forEach((rect,index)=>{
             ctx.beginPath();
@@ -96,6 +101,7 @@
         });
       }
       
+      //draw the blue circle when release the mouseclick
       function draw_blue_circle(){
         console.log('draw_circle');
         ctx.strokeStyle = 'rgb(0, 0, 255)';
@@ -105,6 +111,7 @@
         ctx.stroke();
       }
 
+      //draw the red center when start the mouseclick
       function draw_center(){
         ctx.fillStyle = 'rgb(255, 0, 0)';
         ctx.beginPath();
@@ -112,6 +119,10 @@
         ctx.fill();
       }
 
+      /*
+      if the grid rectangle center is close to the drawed blue circle within defined distance(half of the grid move offset), 
+      set its attibute 'isSelected' to true, highlight with blue color. 
+      */
       function highlight_point(){
           rects.forEach((item,index)=>{
               let distance=Math.abs(Math.sqrt((item.x-cenX)**2+(item.y-cenY)**2)-Radius);
@@ -122,6 +133,7 @@
           draw_grid();
       }
 
+      //based on the highlighted points, get the minimum radius and maximum radius, and draw two correspondent circles.
       function draw_red_circle(){
         ctx.strokeStyle = 'rgb(255, 0, 0)';
         let Radius1=Number.MAX_VALUE;
@@ -138,13 +150,14 @@
             };
         });
         ctx.beginPath();
-        ctx.arc(cenX, cenY, Radius1, degToRad(0), degToRad(360), false);
+        ctx.arc(cenX, cenY, Radius1-2.5, degToRad(0), degToRad(360), false);
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(cenX, cenY, Radius2, degToRad(0), degToRad(360), false);
+        ctx.arc(cenX, cenY, Radius2+2.5, degToRad(0), degToRad(360), false);
         ctx.stroke();
       }
 
+      //repeatly track the click event occurs on the canvas and draw correspondent shape when mouse clicked.
       function draw() {
         if(pressed) {
             draw_center();
